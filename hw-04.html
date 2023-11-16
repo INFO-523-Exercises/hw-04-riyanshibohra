@@ -291,7 +291,7 @@ date (1): date
 <p><img src="hw-04_files/figure-html/unnamed-chunk-9-1.png" class="img-fluid" width="672"></p>
 </div>
 <div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Interpretation: </span></span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="co"># The plot showcases a positive linear relationship between the true values and the predicted values of the adjusted closing prices. </span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="co"># The plot showcases a positive linear relationship between the true values and the predicted values of the adjusted closing prices</span></span>
 <span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="co"># This suggests that the predictions are closely aligned with the actual values, indicating an effective model performance</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell">
@@ -305,7 +305,7 @@ date (1): date
 <div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Evaluating the performance of the linear regression model on the test set</span></span>
 <span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>rmse_value <span class="ot">&lt;-</span> <span class="fu">rmse</span>(<span class="at">data =</span> eval_data, <span class="at">truth =</span> truth, <span class="at">estimate =</span> estimate)   <span class="co">#root mean square rror</span></span>
-<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>r2_value <span class="ot">&lt;-</span> <span class="fu">rsq</span>(eval_data, <span class="at">truth =</span> truth, <span class="at">estimate =</span> estimate)              <span class="co">#coefficient of determination</span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>r2_value <span class="ot">&lt;-</span> <span class="fu">rsq</span>(eval_data, <span class="at">truth =</span> truth, <span class="at">estimate =</span> estimate)  <span class="co">#coefficient of determination</span></span>
 <span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Root mean squared error ="</span>, <span class="fu">sprintf</span>(<span class="st">"%.4f"</span>, rmse_value<span class="sc">$</span>.estimate), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)     <span class="co"># Print the RMSE value</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
@@ -316,7 +316,7 @@ date (1): date
 <pre><code>R-squared = 0.9890 </code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Interpretation: </span></span>
-<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="co"># The Root Mean Squared Error (RMSE) of 10.6057 indicates the average deviation of the predicted values from the actual values is around 10.61 units. </span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="co"># The Root Mean Squared Error (RMSE) of 10.6057 indicates the average deviation of the predicted values from the actual values is around 10.61 units</span></span>
 <span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a><span class="co"># An R-squared of 0.9890 shows that 98.90% of the variance in the dependent variable is predictable from the independent variable, reflecting a high level of accuracy in the model's predictions</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
@@ -339,7 +339,7 @@ date (1): date
 <pre><code>Intercept = -2.663777 </code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Interpretation: </span></span>
-<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a><span class="co"># The slope of the regression line is approximately 0.983, indicating that for every unit increase in the opening price, there is an approximate increase of 0.983 units in the adjusted closing price. </span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a><span class="co"># The slope of the regression line is approximately 0.983, indicating that for every unit increase in the opening price, there is an approximate increase of 0.983 units in the adjusted closing price</span></span>
 <span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a><span class="co"># The negative intercept (-2.66) suggests that the when the opening price is zero,the adjusted closing price is slightly below zero</span></span>
 <span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a><span class="co"># This suggest high accuracy and low error in model predictions.</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
@@ -360,7 +360,7 @@ used by format 'Predicted Function'</code></pre>
 <p><img src="hw-04_files/figure-html/unnamed-chunk-13-1.png" class="img-fluid" width="672"></p>
 </div>
 <div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Interpretation: </span></span>
-<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a><span class="co"># This plot displays the actual data points (in red) and the model's predictions (black line) for the relationship between the opening price (X) and the adjusted closing price (y). </span></span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a><span class="co"># This plot displays the actual data points (in red) and the model's predictions (black line) for the relationship between the opening price (X) and the adjusted closing price (y)</span></span>
 <span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a><span class="co"># The linear trend in the predictions aligns well with the actual data points, indicating that the model effectively captures the trend in the data</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>

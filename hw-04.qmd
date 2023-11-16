@@ -200,7 +200,7 @@ eval_data <- tibble(
 ```{r}
 # Evaluating the performance of the linear regression model on the test set
 
-rmse_value <- rmse(data = eval_data, truth = truth, estimate = estimate).   #root mean square rror
+rmse_value <- rmse(data = eval_data, truth = truth, estimate = estimate)   #root mean square rror
 r2_value <- rsq(eval_data, truth = truth, estimate = estimate)              #coefficient of determination
 
 cat("Root mean squared error =", sprintf("%.4f", rmse_value$.estimate), "\n")     # Print the RMSE value

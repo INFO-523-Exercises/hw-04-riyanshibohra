@@ -1,11 +1,9 @@
 ## Data Source
 
-Big Tech Stock Prices
+Big Tech Stock Prices: 
 https://github.com/rfordatascience/tidytuesday/tree/master/data/2023/2023-02-07
 
 ### Data Dictionary
-
-# `big_tech_stock_prices.csv`
 
 |variable     |class     |description  |
 |:------------|:---------|:------------|

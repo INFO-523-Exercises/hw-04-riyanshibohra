@@ -1,0 +1,258 @@
+---
+title: "Homework 4"
+author: "Riyanshi Bohra"
+description: "Regression in R"
+format: html
+editor: visual
+---
+
+# Homework 4- Regression in R
+
+# Setting Up
+
+```{r}
+# Installing and loading essential packages using pacman
+if (!require(pacman))
+  install.packages("pacman")
+
+pacman::p_load(tidymodels,
+               tidyverse,
+               ranger,
+               randomForest,
+               glmnet,
+               gridExtra)
+
+# Setting theme
+theme_set(theme_bw() + theme(legend.position = "top"))
+```
+
+## Big Tech Stock Prices
+
+We will be using the Big Tech Stocks Prices repository to answer the following question using Regression: \
+How do daily opening prices, trading volumes, and historical trends influence the adjusted closing prices of stocks?
+
+### Load dataset
+
+```{r}
+# Loading the big_tech_stocks.csv dataset into the stock variable
+stocks<- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2023/2023-02-07/big_tech_stock_prices.csv')
+
+show_col_types = FALSE
+```
+
+### Dataset description
+
+```{r}
+head(stocks)
+```
+
+
+```{r}
+numInstances <- nrow(stocks) # number of data instances
+X <- stocks$open
+y <- stocks$adj_close
+
+```
+
+```{r}
+
+ggplot() +
+  #geom_point(aes(x=X, y=y), color="black") +
+  geom_line(aes(x=X, y=y), color="darkred", linewidth=1) +
+  ggtitle('Relationship between Opening Price and Closing Price') +
+  xlab('Price at Market open') +
+  ylab('Adjusted Price at Market close')
+```
+
+# Multiple Linear Regression
+
+Process Overview: 
+Data Splitting: Divide the dataset into training and test sets. \n
+Model Fitting: Fit the MLR model to the training data.
+Prediction: Apply the model to the test data to make predictions.
+Evaluation: Assess the model's performance using appropriate metrics.
+Postprocessing: Visualize the model's results for better understanding and interpretation.
+
+## 1) Split Input Data into Training and Test Sets
+
+```{r}
+# Train/test split
+
+# Number of instances to include in the training set
+numTrain <- 100   
+numTest <- numInstances - numTrain
+
+# Set seed for reproducibility
+set.seed(123)
+
+# Create a tibble (data frame) with X and y
+data <- tibble(X = X, y = y)
+
+# Split the data into training and testing sets
+split_obj <- initial_split(data, prop = numTrain/numInstances)
+
+# Extract training and testing data
+train_data <- training(split_obj)
+test_data <- testing(split_obj)
+
+# Extract X_train, X_test, y_train, y_test from the train and test sets
+X_train <- train_data$X
+y_train <- train_data$y
+X_test <- test_data$X
+y_test <- test_data$y
+```
+
+## 2) Fit Regression Model to Training Set
+```{r}
+# Create a linear regression model specification
+lin_reg_spec <- linear_reg() |> 
+  set_engine("lm")
+
+# Fit the model to the training data
+lin_reg_fit <- lin_reg_spec |> 
+  fit(y ~ X, data = train_data)
+```
+
+## 3) Apply Model to the Test Set
+```{r}
+# Apply model to the test set
+y_pred_test <- predict(lin_reg_fit, new_data = test_data) |>
+  pull(.pred)
+```
+
+## 4) Evaluate Model Performance on Test Set
+```{r}
+# Plotting true vs predicted values
+ggplot() + 
+  geom_point(aes(x = as.vector(y_test), y = y_pred_test), color = 'blue') +
+  ggtitle('Comparing true and predicted values for test set') +
+  xlab('True values for y') +
+  ylab('Predicted values for y')
+```
+
+```{r}
+# Prepare data for yardstick evaluation
+eval_data <- tibble(
+  truth = as.vector(y_test),
+  estimate = y_pred_test
+)
+
+```
+
+```{r}
+
+# Model evaluation
+rmse_value <- rmse(data = eval_data, truth = truth, estimate = estimate)
+r2_value <- rsq(eval_data, truth = truth, estimate = estimate)
+
+cat("Root mean squared error =", sprintf("%.4f", rmse_value$.estimate), "\n")
+cat('R-squared =', sprintf("%.4f", r2_value$.estimate), "\n")
+```
+
+## 5) Postprocessing
+```{r}
+# Display model parameters
+coef_values <- coef(lin_reg_fit$fit)  # Extract coefficients
+slope <- coef_values["X"]
+intercept <- coef_values["(Intercept)"]
+
+cat("Slope =", slope, "\n")
+
+cat("Intercept =", intercept, "\n")
+```
+
+```{r}
+### Step 4: Postprocessing
+
+# Plot outputs
+ggplot() +
+  geom_point(aes(x = as.vector(X_test), y = as.vector(y_test)), color = '#BF565A') +
+  geom_line(aes(x = as.vector(X_test), y = y_pred_test), color = 'black', linewidth = 1) +
+  ggtitle(sprintf('Predicted Function: y = %.2fX + %.2f', slope, intercept)) +
+  xlab('X') +
+  ylab('y')
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```

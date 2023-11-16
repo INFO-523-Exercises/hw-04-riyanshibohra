@@ -50,8 +50,8 @@ head(stocks)
 ```{r}
 numInstances <- nrow(stocks) # number of data instances
 X <- stocks$open
-y <- stocks$adj_close
-
+y_true <- stocks$adj_close # adding noise to the data
+y <- y_true + matrix(rnorm(numInstances), ncol =1)
 ```
 
 ```{r}
@@ -79,7 +79,7 @@ Postprocessing: Visualize the model's results for better understanding and inter
 # Train/test split
 
 # Number of instances to include in the training set
-numTrain <- 100   
+numTrain <- 2000
 numTest <- numInstances - numTrain
 
 # Set seed for reproducibility
@@ -172,41 +172,156 @@ ggplot() +
   xlab('X') +
   ylab('y')
 ```
-
+# Effect of Correlated Attributes
 ```{r}
+# Generate the variables
+set.seed(1)
+X2 <- stocks$close
+X3 <- stocks$high
+X4 <- stocks$volume
+X5 <- stocks$low
+```
 
+```{r fig.height=10, fig.width= 15}
+# Create plots
+plot1 <- ggplot() +
+  geom_point(aes(X, X2), color='black') +
+  xlab('X') + ylab('X2') +
+  ggtitle(sprintf("Correlation between X and X2 = %.4f", cor(X[-c((numInstances-numTest+1):numInstances)], X2[-c((numInstances-numTest+1):numInstances)])))
+
+plot2 <- ggplot() +
+  geom_point(aes(X2, X3), color='black') +
+  xlab('X2') + ylab('X3') +
+  ggtitle(sprintf("Correlation between X2 and X3 = %.4f", cor(X2[-c((numInstances-numTest+1):numInstances)], X3[-c((numInstances-numTest+1):numInstances)])))
+
+plot3 <- ggplot() +
+  geom_point(aes(X3, X4), color='black') +
+  xlab('X3') + ylab('X4') +
+  ggtitle(sprintf("Correlation between X3 and X4 = %.4f", cor(X3[-c((numInstances-numTest+1):numInstances)], X4[-c((numInstances-numTest+1):numInstances)])))
+
+plot4 <- ggplot() +
+  geom_point(aes(X4, X5), color='black') +
+  xlab('X4') + ylab('X5') +
+  ggtitle(sprintf("Correlation between X4 and X5 = %.4f", cor(X4[-c((numInstances-numTest+1):numInstances)], X5[-c((numInstances-numTest+1):numInstances)])))
+
+# Combine plots into a 2x2 grid
+grid.arrange(plot1, plot2, plot3, plot4, ncol=2)
 ```
 
 ```{r}
+# Split data into training and testing sets
+train_indices <- 1:(numInstances - numTest)
+test_indices <- (numInstances - numTest + 1):numInstances
 
+# Create combined training and testing sets
+X_train2 <- cbind(X[train_indices], X2[train_indices])
+X_test2 <- cbind(X[test_indices], X2[test_indices])
+
+X_train3 <- cbind(X[train_indices], X2[train_indices], X3[train_indices])
+X_test3 <- cbind(X[test_indices], X2[test_indices], X3[test_indices])
+
+X_train4 <- cbind(X[train_indices], X2[train_indices], X3[train_indices], X4[train_indices])
+X_test4 <- cbind(X[test_indices], X2[test_indices], X3[test_indices], X4[test_indices])
+
+X_train5 <- cbind(X[train_indices], X2[train_indices], X3[train_indices], X4[train_indices], X5[train_indices])
+X_test5 <- cbind(X[test_indices], X2[test_indices], X3[test_indices], X4[test_indices], X5[test_indices])
 ```
 
 ```{r}
+# Convert matrices to tibbles for training
+train_data2 <- tibble(X1 = X_train2[,1], X2 = X_train2[,2], y = y_train)
+train_data3 <- tibble(X1 = X_train3[,1], X2 = X_train3[,2], X3 = X_train3[,3], y = y_train)
+train_data4 <- tibble(X1 = X_train4[,1], X2 = X_train4[,2], X3 = X_train4[,3], X4 = X_train4[,4], y = y_train)
+train_data5 <- tibble(X1 = X_train5[,1], X2 = X_train5[,2], X3 = X_train5[,3], X4 = X_train5[,4], X5 = X_train5[,5], y = y_train)
 
+# Train models
+regr2_spec <- linear_reg() %>% set_engine("lm")
+regr2_fit <- regr2_spec %>% fit(y ~ X1 + X2, data = train_data2)
+
+regr3_spec <- linear_reg() %>% set_engine("lm")
+regr3_fit <- regr3_spec %>% fit(y ~ X1 + X2 + X3, data = train_data3)
+
+regr4_spec <- linear_reg() %>% set_engine("lm")
+regr4_fit <- regr4_spec %>% fit(y ~ X1 + X2 + X3 + X4, data = train_data4)
+
+regr5_spec <- linear_reg() %>% set_engine("lm")
+regr5_fit <- regr5_spec %>% fit(y ~ X1 + X2 + X3 + X4 + X5, data = train_data5)
 ```
 
 ```{r}
+# All 4 versions of the regression models are then applied to the training and test sets.
+# Convert matrices to data.frames for predictions
+new_train_data2 <- setNames(as.data.frame(X_train2), c("X1", "X2"))
+new_test_data2 <- setNames(as.data.frame(X_test2), c("X1", "X2"))
 
+new_train_data3 <- setNames(as.data.frame(X_train3), c("X1", "X2", "X3"))
+new_test_data3 <- setNames(as.data.frame(X_test3), c("X1", "X2", "X3"))
+
+new_train_data4 <- setNames(as.data.frame(X_train4), c("X1", "X2", "X3", "X4"))
+new_test_data4 <- setNames(as.data.frame(X_test4), c("X1", "X2", "X3", "X4"))
+
+new_train_data5 <- setNames(as.data.frame(X_train5), c("X1", "X2", "X3", "X4", "X5"))
+new_test_data5 <- setNames(as.data.frame(X_test5), c("X1", "X2", "X3", "X4", "X5"))
+
+# Predictions
+y_pred_train2 <- predict(regr2_fit, new_data = new_train_data2)
+y_pred_test2 <- predict(regr2_fit, new_data = new_test_data2)
+
+y_pred_train3 <- predict(regr3_fit, new_data = new_train_data3)
+y_pred_test3 <- predict(regr3_fit, new_data = new_test_data3)
+
+y_pred_train4 <- predict(regr4_fit, new_data = new_train_data4)
+y_pred_test4 <- predict(regr4_fit, new_data = new_test_data4)
+
+y_pred_train5 <- predict(regr5_fit, new_data = new_train_data5)
+y_pred_test5 <- predict(regr5_fit, new_data = new_test_data5)
 ```
 
 ```{r}
+# Extract coefficients and intercepts
+get_coef <- function(model) {
+  coef <- coefficients(model$fit)
+  coef
+}
 
+# Calculate RMSE
+calculate_rmse <- function(actual, predicted) {
+  rmse <- sqrt(mean((actual - predicted)^2))
+  rmse
+}
 ```
 
 ```{r}
-
+results <- tibble(
+  Model = c(sprintf("%.2f X + %.2f", get_coef(regr2_fit)['X1'], get_coef(regr2_fit)['(Intercept)']),
+            sprintf("%.2f X + %.2f X2 + %.2f", get_coef(regr3_fit)['X1'], get_coef(regr3_fit)['X2'], get_coef(regr3_fit)['(Intercept)']),
+            sprintf("%.2f X + %.2f X2 + %.2f X3 + %.2f", get_coef(regr4_fit)['X1'], get_coef(regr4_fit)['X2'], get_coef(regr4_fit)['X3'], get_coef(regr4_fit)['(Intercept)']),
+            sprintf("%.2f X + %.2f X2 + %.2f X3 + %.2f X4 + %.2f", get_coef(regr5_fit)['X1'], get_coef(regr5_fit)['X2'], get_coef(regr5_fit)['X3'], get_coef(regr5_fit)['X4'], get_coef(regr5_fit)['(Intercept)'])),
+  
+  Train_error = c(calculate_rmse(y_train, y_pred_train2$.pred),
+                  calculate_rmse(y_train, y_pred_train3$.pred),
+                  calculate_rmse(y_train, y_pred_train4$.pred),
+                  calculate_rmse(y_train, y_pred_train5$.pred)),
+  
+  Test_error = c(calculate_rmse(y_test, y_pred_test2$.pred),
+                 calculate_rmse(y_test, y_pred_test3$.pred),
+                 calculate_rmse(y_test, y_pred_test4$.pred),
+                 calculate_rmse(y_test, y_pred_test5$.pred)),
+  
+  Sum_of_Absolute_Weights = c(sum(abs(get_coef(regr2_fit))),
+                              sum(abs(get_coef(regr3_fit))),
+                              sum(abs(get_coef(regr4_fit))),
+                              sum(abs(get_coef(regr5_fit))))
+)
 ```
 
 ```{r}
-
-```
-
-```{r}
-
-```
-
-```{r}
-
+# Plotting
+ggplot(results, aes(x = Sum_of_Absolute_Weights)) +
+  geom_line(aes(y = Train_error, color = "Train error"), linetype = "solid") +
+  geom_line(aes(y = Test_error, color = "Test error"), linetype = "dashed") +
+  labs(x = "Sum of Absolute Weights", y = "Error rate") +
+  theme_minimal()
 ```
 
 ```{r}

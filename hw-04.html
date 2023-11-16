@@ -109,30 +109,34 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <section id="homework-4--regression-in-r" class="level1">
 <h1>Homework 4- Regression in R</h1>
+<p>Regression analysis is a statistical technique for modeling the relationship between a dependent variable and one or more independent variables.</p>
+<p>In our analysis, we employ regression to uncover how opening stock prices and trading volumes impact the adjusted closing prices, providing insights into stock market dynamics.</p>
 </section>
 <section id="setting-up" class="level1">
 <h1>Setting Up</h1>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Installing and loading essential packages using pacman</span></span>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Check and install pacman if not available</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">require</span>(pacman))</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">install.packages</span>(<span class="st">"pacman"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>Loading required package: pacman</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>pacman<span class="sc">::</span><span class="fu">p_load</span>(tidymodels,</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>               tidyverse,</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>               ranger,</span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>               randomForest,</span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>               glmnet,</span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>               gridExtra)</span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Setting theme</span></span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="fu">theme_set</span>(<span class="fu">theme_bw</span>() <span class="sc">+</span> <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"top"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Load required packages using pacman</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>pacman<span class="sc">::</span><span class="fu">p_load</span>(tidymodels,</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>               tidyverse,</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>               ranger,</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>               randomForest,</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>               glmnet,</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>               gridExtra)</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Set a theme for plots with legend at the top</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="fu">theme_set</span>(<span class="fu">theme_bw</span>() <span class="sc">+</span> <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"top"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <section id="big-tech-stock-prices" class="level2">
 <h2 class="anchored" data-anchor-id="big-tech-stock-prices">Big Tech Stock Prices</h2>
-<p>We will be using the Big Tech Stocks Prices repository to answer the following question using Regression:<br>
-How do daily opening prices, trading volumes, and historical trends influence the adjusted closing prices of stocks?</p>
+<p>This analysis utilizes a dataset of Big Tech Stock Prices, capturing key stock market indicators for major technology companies over a specified period.</p>
+<p>I will be using the dataset to answer the following question using Regression:</p>
+<p>How do daily opening prices, trading volumes, and historical trends influence the adjusted closing prices of stocks?</p>
 <section id="load-dataset" class="level3">
 <h3 class="anchored" data-anchor-id="load-dataset">Load dataset</h3>
 <div class="cell">
@@ -153,6 +157,17 @@ date (1): date
 </section>
 <section id="dataset-description" class="level3">
 <h3 class="anchored" data-anchor-id="dataset-description">Dataset description</h3>
+<p>The dataset includes the following columns:</p>
+<p><strong>stock_symbol</strong>: Symbol representing the stock of a company.</p>
+<p><strong>date</strong>: The specific date for the stock data entry.</p>
+<p><strong>open</strong>: The opening price of the stock on the given date.</p>
+<p><strong>high</strong>: The highest price of the stock on the given date.</p>
+<p><strong>low</strong>: The lowest price of the stock on the given date.</p>
+<p><strong>close</strong>: The closing price of the stock on the given date.</p>
+<p><strong>adj_close</strong>: The adjusted closing price of the stock, which accounts for factors like dividends and stock splits.</p>
+<p><strong>volume</strong>: The number of shares traded during the day.</p>
+<p>Dataset source:</p>
+<p>https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2023/2023-02-07/big_tech_stock_prices.csv</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(stocks)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
@@ -167,6 +182,7 @@ date (1): date
 6 AAPL         2010-01-11  7.6   7.61  7.44  7.50      6.40 462229600</code></pre>
 </div>
 </div>
+<p>In the regression analysis, the primary focus is on understanding the impact of market indicators on a stock’s performance. The <em>target variable</em> for this purpose is <em>adj_close</em>, the adjusted closing price, which is a vital measure reflecting a stock’s value adjusted for factors like dividends and stock splits. As <em>independent variable</em>, I considered <em>open</em>, the price at which the stock begins trading each day, and volume, the total number of shares traded during the day</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>numInstances <span class="ot">&lt;-</span> <span class="fu">nrow</span>(stocks) <span class="co"># number of data instances</span></span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>X <span class="ot">&lt;-</span> stocks<span class="sc">$</span>open         <span class="co"># dependant variable </span></span>

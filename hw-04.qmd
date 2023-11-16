@@ -8,13 +8,18 @@ editor: visual
 
 # Homework 4- Regression in R
 
+Regression analysis is a statistical technique for modeling the relationship between a dependent variable and one or more independent variables.
+
+In our analysis, we employ regression to uncover how opening stock prices and trading volumes impact the adjusted closing prices, providing insights into stock market dynamics.
+
 # Setting Up
 
 ```{r}
-# Installing and loading essential packages using pacman
+# Check and install pacman if not available
 if (!require(pacman))
   install.packages("pacman")
 
+# Load required packages using pacman
 pacman::p_load(tidymodels,
                tidyverse,
                ranger,
@@ -22,36 +27,65 @@ pacman::p_load(tidymodels,
                glmnet,
                gridExtra)
 
-# Setting theme
+# Setting a black and white theme for future plots with the legend at the top
 theme_set(theme_bw() + theme(legend.position = "top"))
 ```
 
 ## Big Tech Stock Prices
 
-We will be using the Big Tech Stocks Prices repository to answer the following question using Regression:\
+This analysis utilizes a dataset of Big Tech Stock Prices, capturing key stock market indicators for major technology companies over a specified period.
+
+I will be using the dataset to answer the following question using Regression:
+
 How do daily opening prices, trading volumes, and historical trends influence the adjusted closing prices of stocks?
 
 ### Load dataset
 
 ```{r}
-# Loading the big_tech_stocks.csv dataset into the stock variable
-stocks<- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2023/2023-02-07/big_tech_stock_prices.csv')
+# Loading big tech stock prices dataset into 'stocks' dataframe
 
+stocks<- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2023/2023-02-07/big_tech_stock_prices.csv')
 ```
 
 ### Dataset description
 
 ```{r}
+# Displaying the first few rows of the stocks dataset for a quick overview
 head(stocks)
 ```
 
+The dataset includes the following columns:
+
+**stock_symbol**: Symbol representing the stock of a company.
+
+**date**: The specific date for the stock data entry.
+
+**open**: The opening price of the stock on the given date.
+
+**high**: The highest price of the stock on the given date.
+
+**low**: The lowest price of the stock on the given date.
+
+**close**: The closing price of the stock on the given date.
+
+**adj_close**: The adjusted closing price of the stock, which accounts for factors like dividends and stock splits.
+
+**volume**: The number of shares traded during the day.
+
+In the regression analysis, the primary focus is on understanding the impact of market indicators on a stock's performance.
+
+The **Target Variable** for this purpose is **adj_close**, the adjusted closing price, which is a vital measure reflecting a stock's value adjusted for factors like dividends and stock splits.
+
+The **Independent Variable** is **open**, the price at which the stock begins trading each day.
+
 ```{r}
-numInstances <- nrow(stocks) # number of data instances
-X <- stocks$open         # dependant variable 
-y <- stocks$adj_close     # independent variable
+numInstances <- nrow(stocks)  # Saving the total number of rows in the dataset in numInstances
+X <- stocks$open         # Extracting 'open' prices as predictor variable
+y <- stocks$adj_close     # Extracting 'adjusted close' prices as response variable
 ```
 
 ```{r}
+# Plotting the relationship between stock opening prices and adjusted closing prices
 
 ggplot() +
   #geom_point(aes(x=X, y=y), color="black") +
@@ -59,129 +93,180 @@ ggplot() +
   ggtitle('Relationship between Opening Price and Closing Price') +
   xlab('Price at Market open') +
   ylab('Adjusted Price at Market close')
+
+# Interpretation: 
+# Shows a positive linear correlation between stock opening prices(independent variable) and adjusted closing prices(dependent variable) 
 ```
 
 # Multiple Linear Regression
 
-Process Overview: Data Splitting: Divide the dataset into training and test sets. \n Model Fitting: Fit the MLR model to the training data. Prediction: Apply the model to the test data to make predictions. Evaluation: Assess the model's performance using appropriate metrics. Postprocessing: Visualize the model's results for better understanding and interpretation.
+Multiple linear regression is a statistical technique used to analyze the relationship between multiple independent variables and a single dependent variable, aiming to predict the dependent variable as a linear combination of the independent variables.
+
+Process Overview:
+
+-   Data Splitting: Divide the dataset into training and test sets.
+
+-   Model Fitting: Fit the model to the training data.
+
+-   Prediction: Apply the model to the test data to make predictions.
+
+-   Evaluation: Assess the model's performance using appropriate metrics.
+
+-   Postprocessing: Visualize the model's results for better understanding and interpretation.
 
 ## 1) Split Input Data into Training and Test Sets
 
 ```{r}
-# Train/test split
 
-# Number of instances to include in the training set
-numTrain <- 1000
+# Specifying the number of instances for training and testing
+numTrain <- 1000.   
 numTest <- numInstances - numTrain
 
-# Set seed for reproducibility
+# Setting a random seed for reproducibility
 set.seed(123)
 
-# Create a tibble (data frame) with X and y
+# Combining 'X' and 'y' into a tibble for easier data handling
 data <- tibble(X = X, y = y)
 
-# Split the data into training and testing sets
+# Splitting data into training and test sets using a predefined proportion
 split_obj <- initial_split(data, prop = numTrain/numInstances)
 
-# Extract training and testing data
+# Extracting training and test datasets from the split
 train_data <- training(split_obj)
 test_data <- testing(split_obj)
 
-# Extract X_train, X_test, y_train, y_test from the train and test sets
+# Separating features and labels for both training and test sets
 X_train <- train_data$X
 y_train <- train_data$y
 X_test <- test_data$X
 y_test <- test_data$y
+
+# Analysis:
+# Split data into training and test sets for model training and evaluation
 ```
 
 ## 2) Fit Regression Model to Training Set
 
 ```{r}
-# Create a linear regression model specification
+# Defining a linear regression model with lm engine
 lin_reg_spec <- linear_reg() |> 
   set_engine("lm")
 
-# Fit the model to the training data
+# Fitting the linear regression model to the training data
 lin_reg_fit <- lin_reg_spec |> 
   fit(y ~ X, data = train_data)
+
+# Analysis:
+# Linear regression model is defined and fitted to the training data
 ```
 
 ## 3) Apply Model to the Test Set
 
 ```{r}
-# Apply model to the test set
+# Applying the trained model to the test dataset to make predictions
+
 y_pred_test <- predict(lin_reg_fit, new_data = test_data) |>
   pull(.pred)
+
+
+# Analysis:
+# Model fitted for prediction
 ```
 
 ## 4) Evaluate Model Performance on Test Set
 
 ```{r}
-# Plotting true vs predicted values
+# Visualizing the comparison between actual and predicted values on the test set
+
 ggplot() + 
   geom_point(aes(x = as.vector(y_test), y = y_pred_test), color = 'blue') +
   ggtitle('Comparing true and predicted values for test set') +
   xlab('True values for y') +
   ylab('Predicted values for y')
+
+# Interpretation: 
+# The plot showcases a positive linear relationship between the true values and the predicted values of the adjusted closing prices. 
+# This suggests that the predictions are closely aligned with the actual values, indicating an effective model performance
 ```
 
 ```{r}
-# Prepare data for yardstick evaluation
+# Preparing data for evaluation with yardstick metrics
 eval_data <- tibble(
   truth = as.vector(y_test),
   estimate = y_pred_test
 )
-
 ```
 
 ```{r}
+# Evaluating the performance of the linear regression model on the test set
 
-# Model evaluation
-rmse_value <- rmse(data = eval_data, truth = truth, estimate = estimate)
-r2_value <- rsq(eval_data, truth = truth, estimate = estimate)
+rmse_value <- rmse(data = eval_data, truth = truth, estimate = estimate).   #root mean square rror
+r2_value <- rsq(eval_data, truth = truth, estimate = estimate)              #coefficient of determination
 
-cat("Root mean squared error =", sprintf("%.4f", rmse_value$.estimate), "\n")
-cat('R-squared =', sprintf("%.4f", r2_value$.estimate), "\n")
+cat("Root mean squared error =", sprintf("%.4f", rmse_value$.estimate), "\n")     # Print the RMSE value
+cat('R-squared =', sprintf("%.4f", r2_value$.estimate), "\n")          # Print the R-squared value
+
+
+# Interpretation: 
+# The Root Mean Squared Error (RMSE) of 10.6057 indicates the average deviation of the predicted values from the actual values is around 10.61 units. 
+# An R-squared of 0.9890 shows that 98.90% of the variance in the dependent variable is predictable from the independent variable, reflecting a high level of accuracy in the model's predictions
 ```
 
 ## 5) Postprocessing
 
 ```{r}
-# Display model parameters
+# Extract and display linear regression model coefficients
+
 coef_values <- coef(lin_reg_fit$fit)  # Extract coefficients
 slope <- coef_values["X"]
 intercept <- coef_values["(Intercept)"]
 
+# Print slope and intercept of the model
 cat("Slope =", slope, "\n")
-
 cat("Intercept =", intercept, "\n")
+
+
+# Interpretation: 
+# The slope of the regression line is approximately 0.983, indicating that for every unit increase in the opening price, there is an approximate increase of 0.983 units in the adjusted closing price. 
+# The negative intercept (-2.66) suggests that the when the opening price is zero,the adjusted closing price is slightly below zero
+# This suggest high accuracy and low error in model predictions.
 ```
 
 ```{r}
-### Step 4: Postprocessing
+# Visualize model predictions and actual values
 
-# Plot outputs
 ggplot() +
   geom_point(aes(x = as.vector(X_test), y = as.vector(y_test)), color = '#BF565A') +
   geom_line(aes(x = as.vector(X_test), y = y_pred_test), color = 'black', linewidth = 1) +
-  ggtitle(sprintf('Predicted Function: y = %.2fX + %.2f', slope, intercept)) +
+  ggtitle(sprintf('Predicted Function', slope, intercept)) +
   xlab('X') +
   ylab('y')
+
+# Interpretation: 
+# This plot displays the actual data points (in red) and the model's predictions (black line) for the relationship between the opening price (X) and the adjusted closing price (y). 
+# The linear trend in the predictions aligns well with the actual data points, indicating that the model effectively captures the trend in the data
 ```
 
 # Effect of Correlated Attributes
 
 ```{r}
-# Generate the variables
+# Setting a seed for reproducibility
 set.seed(1)
+
+# Extracting additional variables from the dataset
 X2 <- stocks$close
 X3 <- stocks$high
 X4 <- stocks$volume
 X5 <- stocks$low
+
+# Analysis of code:
+# Extracts additional variables from the stock dataset to analyze the effect of different stock attributes like high, low, volume and closing price(before adjustments)
 ```
 
 ```{r fig.height=10, fig.width= 15}
-# Create plots
+
+# Creating scatter plots to explore correlations between pairs of variables
+
 plot1 <- ggplot() +
   geom_point(aes(X, X2), color='black') +
   xlab('X') + ylab('X2') +
@@ -204,14 +289,22 @@ plot4 <- ggplot() +
 
 # Combine plots into a 2x2 grid
 grid.arrange(plot1, plot2, plot3, plot4, ncol=2)
+
+
+
+# Interpretation:
+# Plot 1: The correlation coefficient of 0.9988 between X (opening price) and X2 (closing price) shows a very strong positive linear relationship, suggesting that the opening and closing prices of stocks are closely related
+# Plot 2: A correlation of 0.9995 between X2 (closing price) and X3 (high price) indicates an extremely strong positive correlation, implying that the closing and high prices of stocks are almost perfectly aligned
+# Plot 3: The correlation coefficient of -0.1422 between X3 (high price) and X4 (volume) suggests a very weak negative linear relationship, indicating that there's little relationship between the high price of stocks and their trading volume
+# Plot 4: With a correlation of -0.1672 between X4 (volume) and X5 (low price), there's a slight negative correlation, indicating a weak tendency for the stock's trading volume to decrease as the low price decreases
 ```
 
 ```{r}
-# Split data into training and testing sets
+# Splitting the dataset into training and testing indices
 train_indices <- 1:(numInstances - numTest)
 test_indices <- (numInstances - numTest + 1):numInstances
 
-# Create combined training and testing sets
+# Creating training and testing sets with combined variables
 X_train2 <- cbind(X[train_indices], X2[train_indices])
 X_test2 <- cbind(X[test_indices], X2[test_indices])
 
@@ -223,16 +316,24 @@ X_test4 <- cbind(X[test_indices], X2[test_indices], X3[test_indices], X4[test_in
 
 X_train5 <- cbind(X[train_indices], X2[train_indices], X3[train_indices], X4[train_indices], X5[train_indices])
 X_test5 <- cbind(X[test_indices], X2[test_indices], X3[test_indices], X4[test_indices], X5[test_indices])
+
+
+# Analysis:
+# Preparing training and testing sets with an increasing number of variables, combining different attributes 
 ```
 
 ```{r}
-# Convert matrices to tibbles for training
+# Converting matrices to tibbles for easier handling in modeling
+
 train_data2 <- tibble(X1 = X_train2[,1], X2 = X_train2[,2], y = y_train)
 train_data3 <- tibble(X1 = X_train3[,1], X2 = X_train3[,2], X3 = X_train3[,3], y = y_train)
 train_data4 <- tibble(X1 = X_train4[,1], X2 = X_train4[,2], X3 = X_train4[,3], X4 = X_train4[,4], y = y_train)
 train_data5 <- tibble(X1 = X_train5[,1], X2 = X_train5[,2], X3 = X_train5[,3], X4 = X_train5[,4], X5 = X_train5[,5], y = y_train)
 
-# Train models
+```
+
+```{r}
+# Defining and fitting multiple linear regression models with increasing number of variables
 regr2_spec <- linear_reg() %>% set_engine("lm")
 regr2_fit <- regr2_spec %>% fit(y ~ X1 + X2, data = train_data2)
 
@@ -247,8 +348,8 @@ regr5_fit <- regr5_spec %>% fit(y ~ X1 + X2 + X3 + X4 + X5, data = train_data5)
 ```
 
 ```{r}
-# All 4 versions of the regression models are then applied to the training and test sets.
-# Convert matrices to data.frames for predictions
+# Convert training and test data matrices into data frames and perform predictions using the trained models
+
 new_train_data2 <- setNames(as.data.frame(X_train2), c("X1", "X2"))
 new_test_data2 <- setNames(as.data.frame(X_test2), c("X1", "X2"))
 
@@ -273,10 +374,15 @@ y_pred_test4 <- predict(regr4_fit, new_data = new_test_data4)
 
 y_pred_train5 <- predict(regr5_fit, new_data = new_train_data5)
 y_pred_test5 <- predict(regr5_fit, new_data = new_test_data5)
+
+
+# Analysis:
+# This code chunk prepares training and test data sets for different regression models with varying numbers of predictors, and then uses these models to make predictions on both the training and test sets
 ```
 
 ```{r}
-# Extract coefficients and intercepts
+# Extract model coefficients, calculate RMSE for train and test sets, and compute the sum of absolute weights for each model
+
 get_coef <- function(model) {
   coef <- coefficients(model$fit)
   coef
@@ -287,9 +393,7 @@ calculate_rmse <- function(actual, predicted) {
   rmse <- sqrt(mean((actual - predicted)^2))
   rmse
 }
-```
 
-```{r}
 results <- tibble(
   Model = c(sprintf("%.2f X + %.2f", get_coef(regr2_fit)['X1'], get_coef(regr2_fit)['(Intercept)']),
             sprintf("%.2f X + %.2f X2 + %.2f", get_coef(regr3_fit)['X1'], get_coef(regr3_fit)['X2'], get_coef(regr3_fit)['(Intercept)']),
@@ -314,16 +418,25 @@ results <- tibble(
 ```
 
 ```{r}
-# Plotting
+# Visualizing the results
 ggplot(results, aes(x = Sum_of_Absolute_Weights)) +
   geom_line(aes(y = Train_error, color = "Train error"), linetype = "solid") +
   geom_line(aes(y = Test_error, color = "Test error"), linetype = "dashed") +
   labs(x = "Sum of Absolute Weights", y = "Error rate") +
   theme_minimal()
+
+
+# Interpretation:
+# The plot shows that the training error (in green) remains consistently low (under 120)
+# However, the test error (in dashed red) is significantly higher (above 200), suggesting that the model doesn’t perform as well on unseen data, indicating potential overfitting
 ```
 
 ```{r}
 results
+
+# Interpretation
+# There is a significant gap between training and test errors indicates an ongoing issue with overfitting
+# **Sum of Absolute Weights Interpretation**: A very high sum indicates potential over-reliance on certain variables, possibly leading to overfitting.
 ```
 
 # Ridge Regression
@@ -331,7 +444,7 @@ results
 Ridge regression introduces a penalty term to regularize the model, which helps in handling multicollinearity and overfitting, leading to more robust predictions
 
 ```{r}
-# Convert the training and testing sets into data frames for ridge regression
+# Convert training and testing sets into data frames for ridge regression
 
 train_data <- tibble(y = y_train, X_train5)
 test_data <- tibble(y = y_test, X_test5)
@@ -358,10 +471,6 @@ ridge_fit <- ridge_spec %>%
 y_pred_train_ridge <- predict(ridge_fit, new_data = train_data)$.pred
 y_pred_test_ridge <- predict(ridge_fit, new_data = test_data)$.pred
 
-
-# Making predictions
-y_pred_train_ridge <- predict(ridge_fit, new_data = train_data)$.pred
-y_pred_test_ridge <- predict(ridge_fit, new_data = train_data)$.pred
 ```
 
 ```{r warning=FALSE}
@@ -395,7 +504,9 @@ final_results <- bind_rows(results, values6)
 final_results
 
 # Interpretation:
-
+# The significant reduction in test loss in the final model compared to the earlier ones suggests that the ridge regression effectively improved the model's generalization ability, reducing overfitting
+# The increase in the sum of absolute weights indicates that the model is now relying more heavily on its predictors, possibly due to the regularization effect of ridge regression
+# This trade-off between test loss improvement and increased weight sum is ridge regression's impact on model performance
 ```
 
 # Lasso Regression
@@ -455,6 +566,10 @@ lasso_results <- tibble(Model = "Lasso",
                         `Sum of Absolute Weights` = values7[4])
 
 lasso_results
+
+# Interpretation:
+# The lasso model shows moderate training error and higher test error, indicating overfitting. 
+# The lower 'Sum of Absolute Weights' reflects lasso's regularization effect, simplifying the model by reducing coefficient magnitudes
 ```
 
 # Hyperparameter Selection via Cross-Validation
@@ -550,6 +665,10 @@ ridge_results <- tibble(Model = "RidgeCV",
                         `Sum of Absolute Weights` = values6[4])
 
 cat("Selected alpha =", best_params$penalty, "\n")
+
+# Interpretation:
+# The selected alpha of 0.2 indicates the optimal penalty term chosen for ridge regression
+
 ```
 
 ```{r}
@@ -557,6 +676,11 @@ cat("Selected alpha =", best_params$penalty, "\n")
 
 all_results <- bind_rows(results, ridge_results)
 all_results
+
+
+# Interpretation:
+# The model shows a training error and test error similar to the lasso model, suggesting a consistent performance
+# The sum of absolute weights is slightly lower than the lasso model, indicating a balanced complexity of the model due to the regularization effect of ridge regression at this alpha level
 ```
 
 ## Lasso Regression Model
@@ -663,37 +787,16 @@ lasso_results <- tibble(Model = "LassoCV",
 
 cat("Selected alpha for Lasso =", best_params_lasso$penalty, "\n")
 
+
+# Interpretation:
+# The chosen alpha of approximately 0.037 for the lasso model indicates the level of regularization applied
+```
+
+```{r}
 lasso_results
-```
 
-```{r}
 
-```
-
-```{r}
-
-```
-
-```{r}
-
-```
-
-```{r}
-
-```
-
-```{r}
-
-```
-
-```{r}
-
-```
-
-```{r}
-
-```
-
-```{r}
-
+# Interpretation:
+# The similar training and test errors, as well as the sum of absolute weights in the LassoCV model, closely resemble those from the RidgeCV model. 
+# This indicates that both regularization techniques, despite their different approaches (L1 for Lasso and L2 for Ridge), have achieved a comparable level of balance between model complexity and prediction accuracy
 ```
